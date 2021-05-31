@@ -1,0 +1,3 @@
+KeyError in line 104 of /gpfs0/bioinfo/users/obayomi/hinuman_analysis/16S_illumina/create_uniteDB/Snakefile:
+'forward_primer'
+  File "/gpfs0/bioinfo/users/obayomi/hinuman_analysis/16S_illumina/create_uniteDB/Snakefile", line 104, in <module>

@@ -1,0 +1,5 @@
+sample-id	sample_number	batch	pcr_cycles	medium_or_plant	sterile_plant	grown_with_antibiotics	location	water_washed	surface_sterilization	b12_enriched 	treatment	description
+Osnat157-M-1	NA	B	NA	NA	NA	NA	NA	NA	NA	NA	MOCK	Mock_community
+Osnat158-M-2	NA	B	NA	NA	NA	NA	NA	NA	NA	NA	MOCK	Mock_community
+Osnat159-M-3	NA	B	NA	NA	NA	NA	NA	NA	NA	NA	MOCK-DreamTaq	Mock_community(Dream_taq_ready_mix)
+Osnat160-M-	NA	B	NA	NA	NA	NA	NA	NA	NA	NA	MOCK-NegativeControl	Mock_community_negative_control

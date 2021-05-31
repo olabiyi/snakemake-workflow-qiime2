@@ -1,0 +1,6 @@
+sample-id	treatment
+indoor+water_washed+sterile	indoor_waterWashed_sterile
+indoor+water_washed	indoor_waterWashed
+indoor+sterile	indoor_sterile
+indoor+sterile+antibiotic	indoor_sterile_antibiotic
+indoor+water_washed+sterile+antibiotic	indoor_waterWashed_sterile_antibiotic

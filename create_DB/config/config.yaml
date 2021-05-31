@@ -1,0 +1,48 @@
+sample_file: "config/sample.tsv"
+
+samples: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D1', 'D2']
+
+project_dir: "/gpfs0/bioinfo/users/obayomi/hinuman_analysis/16S_illumina/create_uniteDB/"
+
+paired: True
+
+project_name: "mankai"
+
+QIIME2_ENV: "source activate qiime2-2020.6"
+
+# Download pre-trained silva database for qiime2
+
+# Get the pre-trained full-length SILVA 99% classifier
+SILVA_CLASSIFIER: "https://data.qiime2.org/2020.6/common/silva-138-99-nb-classifier.qza"
+
+# Get the raw preformatted sequences
+SILVA_SEQUENCES: "https://data.qiime2.org/2020.6/common/silva-138-99-seqs.qza"
+
+# Get the preformatted taxonomy
+SILVA_TAXONOMY: "https://data.qiime2.org/2020.6/common/silva-138-99-tax.qza"
+
+
+# Unite fungi databse for qiime2
+UNITE_URL: "https://files.plutof.ut.ee/public/orig/98/AE/98AE96C6593FC9C52D1C46B96C2D9064291F4DBA625EF189FEC1CCAFCF4A1691.gz"
+
+
+# Full paths the specified programs
+programs_path:
+    multiqc: "/gpfs0/bioinfo/apps/Miniconda2/Miniconda_v4.3.21/envs/Metagenomics/bin/multiqc"
+    fastqc: "/gpfs0/bioinfo/apps/Miniconda2/Miniconda_v4.3.21/envs/Metagenomics/bin/fastqc"
+    parallel: "/gpfs0/bioinfo/users/obayomi/bin/parallel"
+
+
+# Set tool specific parameters
+parameters:
+    extract_sequence: 
+        forward_primer: "GTGCCAGCMGCCGCGGTAA"
+        reverse_primer: "GGACTACHVGGGTWTCTAAT"
+        min_length: 100
+        max_length: 800
+        trunc_length: 585
+    dada2:
+        min_contig_len: 200
+    deblur:
+        adaptors: "/fastspace/bioinfo_apps/Trimmomatic-0.32/adapters/TruSeq3-PE.fa"
+        min_len: 70

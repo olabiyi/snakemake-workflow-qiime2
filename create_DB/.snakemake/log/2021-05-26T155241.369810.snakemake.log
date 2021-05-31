@@ -1,0 +1,3 @@
+KeyError in line 78 of /gpfs0/bioinfo/users/obayomi/hinuman_analysis/16S_illumina/create_uniteDB/Snakefile:
+'SILVA_CLASSIFIER'
+  File "/gpfs0/bioinfo/users/obayomi/hinuman_analysis/16S_illumina/create_uniteDB/Snakefile", line 78, in <module>

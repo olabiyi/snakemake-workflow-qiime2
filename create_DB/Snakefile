@@ -1,0 +1,231 @@
+from os import path,getcwd
+
+configfile: "config/config.yaml"
+
+
+RULES=["Download_silva_database", "Extract_primer_silva_reads", "Train_silva_classifier",
+       "Download_unite_database", "Unzip_unite_DB", "Import_unite_sequences",
+       "Import_unite_taxonomy", "Import_unite_taxonomy", "Train_unite_classifier"]
+
+
+
+rule all:
+    input:
+        "logs/Download_silva_database/",
+        "logs/Download_unite_database/",
+        "logs/Train_unite_classifier/",
+        "logs/Train_silva_classifier",
+        "00.database/silva-138-99-nb-341-926-classifier.qza",
+        "00.database/unite-trimed-classifier.qza"
+
+
+# This rule will make rule specific log directories
+# # in order to easily store the standard input and stand error
+# # generated when submiting jobs to the cluster
+rule make_logs_directories:
+    output:
+        directory("logs/Download_silva_database/"),
+        directory("logs/Download_unite_database/"),
+        directory("logs/Train_unite_classifier/"),
+        directory("logs/Train_silva_classifier")
+    threads: 1
+    shell:
+        """
+         [ -d logs/ ] || mkdir -p logs/
+         cd logs/
+         for RULE in {RULES}; do
+          [ -d ${{RULE}}/ ] || mkdir -p ${{RULE}}/
+         done
+        """
+
+
+# -------------- Get SILVA database for QIIME2 ------------------#
+
+rule Download_silva_database:
+    input:
+        log_dirs=rules.make_logs_directories.output
+    output:
+        classifier="00.database/silva-138-99-nb-classifier.qza",
+        sequences="00.database/silva-138-99-seqs.qza",
+        taxonomy="00.database/silva-138-99-tax.qza"
+    threads: 1
+#    log: "logs/Download_silva_database/Download_silva_database.log"
+    params:
+        classifier=config["SILVA_CLASSIFIER"],
+        sequences=config["SILVA_SEQUENCES"],
+        taxonomy=config["SILVA_TAXONOMY"]
+    shell:
+        """
+
+        # Classifier
+        wget -O {output.classifier}  {params.classifier}
+        
+        # Sequences
+        wget -O {output.sequences} {params.sequences}
+
+        # Taxonomy
+        wget -O {output.taxonomy} {params.taxonomy}
+
+        """
+
+# ----- A primer specific silva database ---------#
+
+rule Extract_primer_silva_reads:
+    input: rules.Download_silva_database.output.sequences # OR  rules.download_silva_database.output.classifier
+    output: "00.database/ref-seqs-341-926.qza" 
+    threads: 1
+#    log: "logs/Extract_primer_silva_reads/Extract_primer_silva_reads.log"
+    params:
+        conda_activate=config["QIIME2_ENV"],
+        forward_primer=config["parameters"]["extract_sequence"]["forward_primer"],
+        reverse_primer=config["parameters"]["extract_sequence"]["reverse_primer"],
+        trunc_len=config["parameters"]["extract_sequence"]["trunc_length"],
+        min_length=config["parameters"]["extract_sequence"]["min_length"],
+        max_length=config["parameters"]["extract_sequence"]["max_length"]
+    shell:
+        """
+        set +u
+
+        {params.conda_activate}
+
+        set -u
+        
+        qiime feature-classifier extract-reads \
+             --i-sequences {input} \
+             --p-f-primer {params.forward_primer} \
+             --p-r-primer {params.reverse_primer} \
+             --p-trunc-len {params.trunc_len} \
+             --p-min-length {params.min_length} \
+             --p-max-length {params.max_length} \
+             --o-reads {output}
+        """
+
+
+#   Train the classifier
+rule Train_silva_classifier:
+    input: 
+        sequences=rules.Extract_primer_silva_reads.output,
+        taxonomy=rules.Download_silva_database.output.taxonomy
+    output: "00.database/silva-138-99-nb-341-926-classifier.qza"
+    threads: 1
+#    log: "logs/Train_silva_classifier/Train_silva_classifier.log"
+    params:
+        conda_activate=config["QIIME2_ENV"]
+    shell:
+        """
+        set +u
+
+        {params.conda_activate}
+
+        set -u
+        
+        qiime feature-classifier fit-classifier-naive-bayes \
+              --i-reference-reads {input.sequences} \
+              --i-reference-taxonomy {input.taxonomy} \
+              --o-classifier {output}
+             
+        """
+
+
+# --------------- Create Unite database for QIIME2 -----------------#
+
+rule Download_unite_database:
+    input:
+        log_dirs=rules.make_logs_directories.output
+    output:
+        temp("00.database/unite.gz")
+    threads: 1
+#    log: "logs/Download_unite_database/Download_unite_database.log"
+    params:
+        url=config["UNITE_URL"]
+    shell:
+        "wget -O {output} {params.url}"
+
+rule Unzip_unite_DB:
+    input: rules.Download_unite_database.output
+    output: 
+        sequences="00.database/sh_qiime_release_04.02.2020/sh_refs_qiime_ver8_dynamic_04.02.2020.fasta",
+        taxonomy="00.database/sh_qiime_release_04.02.2020/sh_taxonomy_qiime_ver8_dynamic_04.02.2020.txt"
+    threads: 1
+#    log: "logs/Unzip_unite_DB/Unzip_unite_DB.log"
+    params:
+        out_dir=lambda w, input: path.dirname(input[0])
+    shell:
+        """
+        cd 
+        tar -xvzf {input}
+        """
+
+
+# Setting up the already trimmed database
+rule Import_unite_sequences:
+    input: rules.Unzip_unite_DB.output.sequences
+    output: "00.database/unite-trimmed.qza"
+    threads: 2
+#    log: "logs/Import_unite_sequences/Import_unite_sequences.log"
+    params:
+        conda_activate=config["QIIME2_ENV"]
+    shell:
+        """
+        set +u
+ 
+        {params.conda_activate}
+ 
+        set -u
+
+        qiime tools import \
+             --type 'FeatureData[Sequence]' \
+             --input-path {input} \
+             --output-path {output}
+        """
+
+        
+        
+# Import Taxonomy
+rule Import_unite_taxonomy:
+    input: rules.Unzip_unite_DB.output.taxonomy
+    output: "00.database/unite-trimmed-taxonomy.qza"
+    threads: 2
+#    log: "logs/Import_unite_taxonomy/Import_unite_taxonomy.log"
+    params:
+        conda_activate=config["QIIME2_ENV"]
+    shell:
+        """
+        set +u
+
+        {params.conda_activate}
+
+        set -u
+
+        qiime tools import \
+             --type 'FeatureData[Taxonomy]' \
+             --input-path {input} \
+             --output-path {output}
+        """
+
+
+# Train the classifier
+rule Train_unite_classifier:
+    input: 
+        sequences=rules.Import_unite_sequences.output,
+        taxonomy=rules.Import_unite_taxonomy.output
+    output: "00.database/unite-trimed-classifier.qza"
+    threads: 10
+#    log: "logs/Train_unite_classifier/Train_unite_classifier.log"
+    params:
+        conda_activate=config["QIIME2_ENV"]
+    shell:
+        """
+        set +u
+
+        {params.conda_activate}
+
+        set -u
+        
+        qiime feature-classifier fit-classifier-naive-bayes \
+              --i-reference-reads {input.sequences} \
+              --i-reference-taxonomy {input.taxonomy} \
+              --o-classifier {output} 
+        """
+
+

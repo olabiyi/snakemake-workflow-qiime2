@@ -1,0 +1,45 @@
+Building DAG of jobs...
+Job counts:
+	count	jobs
+	1	Download_silva_database
+	1	Download_unite_database
+	1	Extract_primer_silva_reads
+	1	Import_unite_sequences
+	1	Import_unite_taxonomy
+	1	Train_silva_classifier
+	1	Train_unite_classifier
+	1	Unzip_unite_DB
+	1	all
+	1	make_logs_directories
+	10
+
+[Wed May 26 11:45:01 2021]
+rule make_logs_directories:
+    output: logs/Download_silva_database, logs/Download_unite_database, logs/Train_unite_classifier, logs/Train_silva_classifier
+    jobid: 1
+    reason: Missing output files: logs/Train_silva_classifier, logs/Download_silva_database, logs/Download_unite_database, logs/Train_unite_classifier
+
+
+         [ -d logs/ ] || mkdir -p logs/
+         cd logs/
+         for RULE in Download_silva_database Extract_primer_silva_reads Train_silva_classifier Download_unite_database Unzip_unite_DB Import_unite_sequences Import_unite_taxonomy Import_unite_taxonomy Train_unite_classifier; do
+          [ -d ${RULE}/ ] || mkdir -p ${RULE}/
+         done
+        
+
+[Wed May 26 11:45:01 2021]
+rule Download_unite_database:
+    input: logs/Download_silva_database, logs/Download_unite_database, logs/Train_unite_classifier, logs/Train_silva_classifier
+    output: 00.database/unite.gz
+    jobid: 8
+    reason: Missing output files: 00.database/unite.gz; Input files updated by another job: logs/Train_silva_classifier, logs/Download_silva_database, logs/Download_unite_database, logs/Train_unite_classifier
+
+wget -O 00.database/unite.gz https://files.plutof.ut.ee/public/orig/98/AE/98AE96C6593FC9C52D1C46B96C2D9064291F4DBA625EF189FEC1CCAFCF4A1691.gz
+
+[Wed May 26 11:45:01 2021]
+rule Download_silva_database:
+    input: logs/Download_silva_database, logs/Download_unite_database, logs/Train_unite_classifier, logs/Train_silva_classifier
+    output: 00.database/silva-138-99-nb-classifier.qza, 00.database/silva-138-99-seqs.qza, 00.database/silva-138-99-tax.qza
+    jobid: 4
+    reason: Missing output files: 00.database/silva-138-99-tax.qza, 00.database/silva-138-99-seqs.qza; Input files updated by another job: logs/Train_silva_classifier, logs/Download_silva_database, logs/Download_unite_database, logs/Train_unite_classifier
+

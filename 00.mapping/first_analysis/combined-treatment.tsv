@@ -1,0 +1,16 @@
+sample-id	treatment
+Medium	Medium
+outdoor+water_washed	outdoor_waterWashed
+indoor+water_washed+sterile	indoor_waterWashed_sterile
+outdoor+water_washed+surface_sterile	outdoor_waterwashed_surfaceSterile
+control 	control 
+indoor+water_washed+B12	indoor_waterWashed_B12
+indoor+water_washed	indoor_waterWashed
+outdoor	outdoor
+indoor+water_washed_sterile	indoor_waterWashed_sterile
+indoor+sterile	indoor_sterile
+indoor+sterile+antibiotic	indoor_sterile_antibiotic
+indoor+water_washed+sterile+antibiotic	indoor_waterWashed_sterile_antibiotic
+MOCK	MOCK
+MOCK-DreamTaq	MOCK_DreamTaq
+MOCK-NegativeControl	MOCK_NegativeControl
