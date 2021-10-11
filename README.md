@@ -1,1 +1,1 @@
-# sankemake-workflow-qiime2
+# snakemake-workflow-qiime2
