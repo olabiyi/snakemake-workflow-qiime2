@@ -1,14 +1,14 @@
 sample_file: "config/sample.tsv"
 metadata: "00.mapping/metadata.tsv"
 mail: "obadbotanist@yahoo.com" # A mere label
-samples: ['40BHFBK1', '40BHFBK1_PF', '40BHFBK2', '40BHFBK3', '40BHFBK3_PF', '40BHFBK4'] # List you sample names here - see the read for an easy way to create this list
+samples: ['40BHFBK1', '40BHFBK1_PF', '40BHFBK2', '40BHFBK3', '40BHFBK3_PF', '40BHFBK4'] # List your sample names here - see the README.md file for an easy way to create this list
 project_dir: "~/biyi/snakemake-workflow-qiime2"
 # what type of amplicon are we analyzing
 # options are
 # "16S", "18S" and "ITS"
-amplicon: "16S" #"16S" 
+amplicon: "16S" # "ITS" 
 # A coloumn in metada for grouping bar plot and for statistics
-category: "treatment"
+category: "Treatment"
 # Three possible mode
 # pair - paired-end reads without joining
 # single - single end reads, joining of unnecessary
@@ -17,7 +17,7 @@ category: "treatment"
 # # make sure to modify the -m -t flags of pear in the run_pear.pl script 
 # before running the workflow
 
-mode: "pair" # "pair" or "merge"
+mode: "pair" # "pair", "single" or "merge"
 RENAME_FILES: true # should your input files be renamed if they don't follow the requirement of 01.raw_data/{SAMPLE}_R{1|2}.fastq.gz
 
 # What method should be used in merging reads
@@ -75,7 +75,7 @@ parameters:
             minimum_merge_length: 400
             minimum_merge_length: 600
     dada2:
-        mode: "single" # "single" or "paired"
+        mode: "paired" # "single" or "paired"
         trunc_length_forward: 260 # this will be determined after visulaizing the quality plot where quality score is >= 20
         trunc_length_reverse: 200
         trim_length_forward: 0
