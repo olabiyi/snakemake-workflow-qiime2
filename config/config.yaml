@@ -96,7 +96,7 @@ parameters:
         mode: "sum" # --p-mode argument
         metadata: "00.mapping/treatment-metadata.tsv" # a 2-column or more metadata for grouping bar plots ['sample-id', 'treatment']
     beta_diversity_significance:
-         categories: "treatment" 
+         categories: "Treatment" 
    # Adators and primer trimming using cutadapt
     cutadapt:
         forward_primer: "GTGYCAGCMGCCGCGGTAA"
