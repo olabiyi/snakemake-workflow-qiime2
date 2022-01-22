@@ -14,7 +14,7 @@ SILVA_TAXONOMY: "https://data.qiime2.org/2020.6/common/silva-138-99-tax.qza"
 
 
 # Unite fungi databse for qiime2
-UNITE_URL: "https://files.plutof.ut.ee/public/orig/98/AE/98AE96C6593FC9C52D1C46B96C2D9064291F4DBA625EF189FEC1CCAFCF4A1691.gz"
+UNITE_URL: "https://files.plutof.ut.ee/public/orig/1D/31/1D31FA3A308BDC2FB2750D62C0AA40C5058C15405A3CC5C626CC3A3F5E3903ED.tgz"
 
 # Set tool specific parameters
 # Sample primers for 341F and 806R

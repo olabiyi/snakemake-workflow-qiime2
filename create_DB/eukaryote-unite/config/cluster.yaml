@@ -1,0 +1,8 @@
+__default__:
+    queue: bioinfo.q
+    shell: /bin/bash
+    threads: 20
+    time: 1:00:00
+    node: 1
+
+

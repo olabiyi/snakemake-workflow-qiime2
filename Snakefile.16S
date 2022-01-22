@@ -3,7 +3,7 @@ import pandas as pd
 
 # Run the pipeline like so:
 # snakemake -pr --cores 10 --keep-going --rerun-incomplete --restart-times 3
-# snakemake -s Snakefile --rulegraph |dot -Tpng > rulegraph.pn
+
 configfile: "config/config.yaml"
 
 onsuccess:
@@ -39,22 +39,14 @@ RULES=["Rename_files", "Merge_reads", "QC_pre_trim", "SummarizeQC_pre_trim", "Im
        "Add_pseudocount", "Ancom_differential_abundance", "Export_tables",
        "Function_annotation", "Add_description"]
 
-if mode == "pair" or mode == "merge":
-
-    READS=expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz", "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples'])
-
-else:
-
-    READS=expand(["01.raw_data/{sample}/{sample}.fastq.gz"], sample=config['samples'])
 
 
 rule all:
     input:
-# ------------->>>>>>  You need to edit this rule to be project specific <<<<<------------ #
-        #expand("01.raw_data/{sample}.fastq.gz", sample=config['samples']), -> SINGLE-END  # uncomment if you want to rename your files
+        "logs/Trim_primers/",
+         "logs/Add_description/",
 #        expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz",
-#                "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples']), -> PAIRED-END # uncomment if you want to rename your file
-        READS,
+#                "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples']),
         "02.QC/pre_trim/multiqc_report.html",
         "03.import/reads.qza",
         "04.QC/raw_reads_qual_viz.qzv",
@@ -70,7 +62,8 @@ rule all:
         expand(diversity_dir + "/beta_{distance}_significance.qzv", distance=distance_matrices),
         "10.Diversity_analysis_{depth}/alpha_rarefaction.qzv".format(depth=config['rarefaction_depth']),
         expand("13.Ancom_differential_abundance/L{taxon_level}-ancom.qzv", taxon_level=TAXON_LEVELS),
-        "15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat_descrip.tsv"       
+        "15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat_descrip.tsv"
+        
         
 
 # This rule will make rule specific log directories
@@ -109,29 +102,17 @@ rule Make_logs_directories:
 # ------------->>>>>>  You need to edit this rule to be project specific <<<<<------------ #
 
 if config['RENAME_FILES']:
-    # Remaning paired-end files
-    if mode == "pair" or mode == "merge":
 
-        rule Rename_files:
-            input: log_dirs=rules.Make_logs_directories.output
-            output:
-                expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz",
-                        "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples'])
-            log: "logs/Rename_files/Rename_files.log"
-            threads: 5
-            run:
-                for old,new in zip(metadata.Old_name,metadata.New_name):
-                    shell("[ -f {new} ] || mv {old} {new}".format(old=old, new=new))
-    else:
-    # Renaming single-end files
-        rule Rename_files:
-            output:
-                expand("01.raw_data/{sample}.fastq.gz",sample=config['samples'])
-            log: "logs/Rename_files/Rename_files.log"
-            threads: 5
-            run:
-                for old,new in zip(metadata.Old_name,metadata.New_name):
-                    shell("mv {old} {new}".format(old=old, new=new))
+    rule Rename_files:
+        input: log_dirs=rules.Make_logs_directories.output
+        output:
+            expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz",
+                    "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples'])
+        log: "logs/Rename_files/Rename_files.log"
+        threads: 5
+        run:
+            for old,new in zip(metadata.Old_name,metadata.New_name):
+                shell("[ -f {new} ] || mv {old} {new}".format(old=old, new=new))
 
 
 
@@ -691,7 +672,7 @@ rule Assign_taxonomy:
 
          # Assign taxonomy
          qiime feature-classifier classify-sklearn \
-           --i-classifier {input.rep_seqs} \
+           --i-classifier {input.classifier} \
            --i-reads {input.rep_seqs} \
            --o-classification {output.raw} 
 
@@ -741,16 +722,14 @@ rule Build_phylogenetic_tree:
 
 # ----------------------------------- Filter feature table ------------------------------------ #
 
-# Edit the taxa listed below as required
-
-# Remove singletons and non-target sequences e.g chloroplast, mitochondria, archaea and eukaryota
+# Remove singletons and non-target sequences e.g chloroplast, mitochondria and eukaryota
 # for protists - Bacteria,Fungi,Chytridiomycota,Basidiomycota,Metazoa,Rotifera,Gastrotricha,
 # Nematozoa,Euglenozoa,Embryophyta,Spermatophyta,Asterales,Brassicales,Caryophyllales,Cupressales,
 # Fabales,Malpighiales,Pinales,Rosales,Solanales,Arecales,Asparagales,Poales,Capsicum,Jatropha,
 # Bryophyta,Tracheophyta
 
 if config['amplicon'] == "16S":
-    taxa2filter = "Unassigned,Chloroplast,Mitochondria,Archaea,Eukaryota"
+    taxa2filter = "Unassigned,Chloroplast,Mitochondria,Eukaryota"
 
 elif config['amplicon'] == "18S":
     taxa2filter = "Bacteria,Fungi,Chytridiomycota,Basidiomycota,Metazoa,Rotifera,"
@@ -760,7 +739,7 @@ elif config['amplicon'] == "18S":
     "Capsicum,Jatropha,Bryophyta,Tracheophyta"
 
 elif config['amplicon'] == "ITS":
-    taxa2filter = "Fungi"
+    taxa2filter = "Unassigned,Chloroplast,Mitochondria"
 
 
 
@@ -806,8 +785,7 @@ rule Exclude_non_target_taxa:
     params:
         conda_activate=config["conda"]["qiime2"]["env"],
         out_dir=lambda w, output: path.dirname(output.table_raw),
-        taxa2exclude=taxa2filter,
-        amplicon=config['amplicon']
+        taxa2exclude=taxa2filter
     shell:
         """
         set +u
@@ -815,26 +793,11 @@ rule Exclude_non_target_taxa:
         set -u
 
         # Filter out non-target assigments
-        if [ {params.amplicon} == "ITS" ]; then
- 
-            # Retain only Fungi sequences
-            qiime taxa filter-table \
-              --i-table {input.table} \
-              --i-taxonomy  {input.taxonomy} \
-              --p-include  {params.taxa2exclude} \
-              --o-filtered-table {output.table_raw}
-
-
-        else
-
-            # Filter out non-target assigments
-            qiime taxa filter-table \
-              --i-table {input.table} \
-              --i-taxonomy  {input.taxonomy} \
-              --p-exclude  {params.taxa2exclude} \
-              --o-filtered-table {output.table_raw}
-        
-        fi
+        qiime taxa filter-table \
+          --i-table {input.table} \
+          --i-taxonomy  {input.taxonomy} \
+          --p-exclude  {params.taxa2exclude} \
+          --o-filtered-table {output.table_raw}
 
         # To figure out the total number of sequences ("Total freqency") 
         # to be used to determine the minuminum frequency for filtering out
@@ -842,7 +805,7 @@ rule Exclude_non_target_taxa:
         # by 0.005
         qiime feature-table summarize \
           --i-table {output.table_raw} \
-          --o-visualization {output.table_raw}
+          --o-visualization {output.table_viz}
         """
 
 # Removing rare taxa i.e. features with abundance less the 0.005%
@@ -918,7 +881,8 @@ rule Group_taxa_bar_plot:
     params:
         conda_activate=config["conda"]["qiime2"]["env"],
         category=config['parameters']['group_taxa_plot']['category'],
-        mode=config['parameters']['group_taxa_plot']['mode']
+        mode=config['parameters']['group_taxa_plot']['mode'],
+        metadata=config['parameters']['group_taxa_plot']['metadata']
     shell:
         """
         set +u
@@ -928,9 +892,8 @@ rule Group_taxa_bar_plot:
         # Group feature table by group in metadata file
         qiime feature-table group \
            --i-table  {input.table}  \
-           --p-axis sample \
-           --m-metadata-file {input.metadata} \ 
-           --m-metadata-column {params.category}
+           --p-axis sample --m-metadata-file {input.metadata} \
+           --m-metadata-column '{params.category}' \
            --p-mode {params.mode} \
            --o-grouped-table {output.grouped_table}
 
@@ -938,8 +901,8 @@ rule Group_taxa_bar_plot:
         qiime taxa barplot \
           --i-table {output.grouped_table} \
           --i-taxonomy {input.taxonomy} \
-          --m-metadata-file {input.metadata} \
-          --o-visualization  {output}
+          --m-metadata-file {params.metadata} \
+          --o-visualization  {output.bar_plot}
        """
 
 
@@ -976,7 +939,10 @@ rule Core_diversity_analysis:
            --i-table {input.table} \
            --i-phylogeny {input.tree} \
            --m-metadata-file {input.metadata} \
-           --output-dir {output}
+           --p-n-jobs-or-threads 'auto' \
+           --output-dir core_diversity/  && \
+           mv core_diversity/* {diversity_dir}/ && \
+           rm -rf core_diversity/
         """
 
 # Alpha rarefaction curves show taxon accumulation as a function of sequence depth
@@ -1045,13 +1011,16 @@ rule Beta_diversity_statistics:
         metadata=config['metadata']
     output:
         expand(diversity_dir + "/beta_{distance}_significance.qzv", distance=distance_matrices)
-    log: "logs/Alpha_diversity_statistics/Alpha_diversity_statistics.log"
+    log: "logs/Beta_diversity_statistics/Beta_diversity_statistics.log"
     threads: 10
     params:
         conda_activate=config["conda"]["qiime2"]["env"],
         category=config['parameters']['group_taxa_plot']['category']
     shell:
         """
+        set +u
+        {params.conda_activate}
+        set -u
 
         
         for distance in {distance_matrices}; do
@@ -1112,7 +1081,7 @@ rule Rename_asv_table:
     threads: 1
     params:
         out_dir=lambda w, output: path.dirname(output[0]),
-        basename=lambda w, output: path.basename(output[0])
+        basename=lambda w, input: path.basename(input[0])
     shell:
         "cp {input} {params.out_dir}/  && "
         "mv {params.out_dir}/{params.basename} {output}"
@@ -1245,99 +1214,81 @@ def get_out_dir(w, output):
     parts = output.ec.split('/')
     return parts[0] + "/" + parts[1]
 
-if config['amplicon'] == "16S":
+# ------------------ Function analysis using Picrust2 -----------------#
 
-    # ------------------ Function analysis using Picrust2 -----------------#
-
-    rule Function_annotation:
-        input:
-            feature_table=rules.Export_tables.output.feature_table_biom,
-            rep_seqs=rules.Export_tables.output.rep_seqs
-        output:
-            ec="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_unstrat.tsv.gz",
-            ko="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat.tsv.gz",
-            pathway="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_unstrat.tsv.gz",
-            contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv.gz"
-        log: "logs/Function_annotation/Function_annotation.log"
-        threads: 10
-        params:
-            conda_activate=config['conda']['picrust2']["env"],
-            out_dir=lambda w, output: output.ec.split('/')[0] + "/" + output.ec.split('/')[1],
-            threads=10
-        shell:
-            """
-            set +u
-            {params.conda_activate}
-            set -u
+rule Function_annotation:
+    input:
+        feature_table=rules.Export_tables.output.feature_table_biom,
+        rep_seqs=rules.Export_tables.output.rep_seqs
+    output:
+        ec="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_unstrat.tsv.gz",
+        ko="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat.tsv.gz",
+        pathway="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_unstrat.tsv.gz",
+        contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv.gz"
+    log: "logs/Function_annotation/Function_annotation.log"
+    threads: 10
+    params:
+        conda_activate=config['conda']['picrust2']["env"],
+        out_dir=lambda w, output: output.ec.split('/')[0] + "/" + output.ec.split('/')[1],
+        threads=10
+    shell:
+        """
+        set +u
+        {params.conda_activate}
+        set -u
         
-            # Remove the temporary output directory if it already exists
-            [ -d picrust2_out_pipeline/ ] && rm -rf picrust2_out_pipeline/
-        
-            # ---- Run picrust2 pipeline for function annotation -------- #
-            picrust2_pipeline.py \
-                -s {input.rep_seqs} \
-                -i {input.feature_table} \
-                -o picrust2_out_pipeline/ \
-                -p {params.threads} \
-                --stratified && \
-                mv picrust2_out_pipeline/* {params.out_dir}/ && \
-                rmdir picrust2_out_pipeline/
-            """
+        # Remove the temporary output directory if it already exists
+        [ -d picrust2_out_pipeline/ ] && rm -rf picrust2_out_pipeline/
 
-    # Add description to PICRUST2 function annotation tables
-    rule Add_description:
-        input:
-            ec=rules.Function_annotation.output.ec,
-            ko=rules.Function_annotation.output.ko,
-            pathway=rules.Function_annotation.output.pathway,
-            contrib=rules.Function_annotation.output.contrib
-        output:
-            ec="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_unstrat_descrip.tsv",
-            ko="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat_descrip.tsv",
-            pathway="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_unstrat_descrip.tsv",
-            ec_contrib="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_contrib.tsv",
-            ko_contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv",
-            pathway_contrib="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_contrib.tsv"
-        log: "logs/Add_description/Add_description.log"
-        threads: 10
-        params:
-            conda_activate=config['conda']['picrust2']["env"],
-            threads=10,
-            outdir="15.Function_annotation/picrust2_out_pipeline/"
-        shell:
-            """
-            set +u
-            {params.conda_activate}
-            set -u
+        # ---- Run picrust2 pipeline for function annotation -------- #
+        picrust2_pipeline.py \
+            -s {input.rep_seqs} \
+            -i {input.feature_table} \
+            -o picrust2_out_pipeline/ \
+            -p {params.threads} \
+            --stratified && \
+            mv picrust2_out_pipeline/* {params.out_dir}/ && \
+            rmdir picrust2_out_pipeline/
+        """
 
-            # ----- Annotate your enzymes, KOs and pathways by adding a description column ------#
-            # EC
-            add_descriptions.py -i {input.ec} -m EC -o {output.ec}
+# Add description to PICRUST2 function annotation tables
+rule Add_description:
+    input:
+        ec=rules.Function_annotation.output.ec,
+        ko=rules.Function_annotation.output.ko,
+        pathway=rules.Function_annotation.output.pathway,
+        contrib=rules.Function_annotation.output.contrib
+    output:
+        ec="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_unstrat_descrip.tsv",
+        ko="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat_descrip.tsv",
+        pathway="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_unstrat_descrip.tsv",
+        ec_contrib="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_contrib.tsv",
+        ko_contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv",
+        pathway_contrib="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_contrib.tsv"
+    log: "logs/Add_description/Add_description.log"
+    threads: 10
+    params:
+        conda_activate=config['conda']['picrust2']["env"],
+        threads=10,
+        outdir="15.Function_annotation/picrust2_out_pipeline/"
+    shell:
+        """
+        set +u
+        {params.conda_activate}
+        set -u
 
-            # Metacyc Pathway
-            add_descriptions.py -i {input.pathway} -m METACYC -o {output.pathway}
+       # ----- Annotate your enzymes, KOs and pathways by adding a description column ------#
+        # EC
+        add_descriptions.py -i {input.ec} -m EC -o {output.ec}
 
-            # KO
-            add_descriptions.py -i {input.ko} -m KO -o {output.ko} 
+        # Metacyc Pathway
+        add_descriptions.py -i {input.pathway} -m METACYC -o {output.pathway}
+
+        # KO
+        add_descriptions.py -i {input.ko} -m KO -o {output.ko} 
  
-            # Unizip the metagenome contribution files - these files describe the micribes contribution the function profiles
-            find {params.outdir} -type f -name "*contrib.tsv.gz" -exec gunzip {{}} \;
-            """
+        # Unizip the metagenome contribution files - these files describe the micribes contribution the function profiles
+        find {params.outdir} -type f -name "*contrib.tsv.gz" -exec gunzip {{}} \;
+        """
 
-else:
-    # This is a dummy rule that just creates an empty file
-    rule Add_description:
-        input:
-            feature_table=rules.Export_tables.output.feature_table_biom
-        output:
-            ko="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat_descrip.tsv"
-        log: "logs/Add_description/Add_description.log"
-        threads: 1
-        params:
-            outdir="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out"
-        shell:
-            """
-                # Create an empty file
-                mkdir -p {params.outdir} && touch {output.ko}
-            """
 

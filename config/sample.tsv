@@ -1,21 +1,33 @@
-SampleID	Type	Prefix	Direction	Old_name	New_name
-A	Forward	A_DKDL210000007-1a_HFL3FCCX2_L6	_1	01.raw_data/A/A_DKDL210000007-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/A/A_1.fq.gz
-A	Reverse	A_DKDL210000007-1a_HFL3FCCX2_L6	_2	01.raw_data/A/A_DKDL210000007-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/A/A_2.fq.gz
-A1	Forward	A1_DKDL210000015-1a_HFL3FCCX2_L6	_1	01.raw_data/A1/A1_DKDL210000015-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/A1/A1_1.fq.gz
-A1	Reverse	A1_DKDL210000015-1a_HFL3FCCX2_L6	_2	01.raw_data/A1/A1_DKDL210000015-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/A1/A1_2.fq.gz
-A2	Forward	A2_DKDL210000016-1a_HFL3FCCX2_L6	_1	01.raw_data/A2/A2_DKDL210000016-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/A2/A2_1.fq.gz
-A2	Reverse	A2_DKDL210000016-1a_HFL3FCCX2_L6	_2	01.raw_data/A2/A2_DKDL210000016-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/A2/A2_2.fq.gz
-B	Forward	B_DKDL210000012-1a_HFL3FCCX2_L6	_1	01.raw_data/B/B_DKDL210000012-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/B/B_1.fq.gz
-B	Reverse	B_DKDL210000012-1a_HFL3FCCX2_L6	_2	01.raw_data/B/B_DKDL210000012-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/B/B_2.fq.gz
-L2	Forward	L2_DKDL210000008-1a_HFL3FCCX2_L6	_1	01.raw_data/L2/L2_DKDL210000008-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/L2/L2_1.fq.gz
-L2	Reverse	L2_DKDL210000008-1a_HFL3FCCX2_L6	_2	01.raw_data/L2/L2_DKDL210000008-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/L2/L2_2.fq.gz
-L3	Forward	L3_DKDL210000009-1a_HFL3FCCX2_L6	_1	01.raw_data/L3/L3_DKDL210000009-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/L3/L3_1.fq.gz
-L3	Reverse	L3_DKDL210000009-1a_HFL3FCCX2_L6	_2	01.raw_data/L3/L3_DKDL210000009-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/L3/L3_2.fq.gz
-L4	Forward	L4_DKDL210000010-1a_HFL3FCCX2_L6	_1	01.raw_data/L4/L4_DKDL210000010-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/L4/L4_1.fq.gz
-L4	Reverse	L4_DKDL210000010-1a_HFL3FCCX2_L6	_2	01.raw_data/L4/L4_DKDL210000010-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/L4/L4_2.fq.gz
-L5	Forward	L5_DKDL210000011-1a_HFL3FCCX2_L6	_1	01.raw_data/L5/L5_DKDL210000011-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/L5/L5_1.fq.gz
-L5	Reverse	L5_DKDL210000011-1a_HFL3FCCX2_L6	_2	01.raw_data/L5/L5_DKDL210000011-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/L5/L5_2.fq.gz
-L7	Forward	L7_DKDL210000013-1a_HFL3FCCX2_L6	_1	01.raw_data/L7/L7_DKDL210000013-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/L7/L7_1.fq.gz
-L7	Reverse	L7_DKDL210000013-1a_HFL3FCCX2_L6	_2	01.raw_data/L7/L7_DKDL210000013-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/L7/L7_2.fq.gz
-L8	Forward	L8_DKDL210000014-1a_HFL3FCCX2_L6	_1	01.raw_data/L8/L8_DKDL210000014-1a_HFL3FCCX2_L6_1.fq.gz	01.raw_data/L8/L8_1.fq.gz
-L8	Reverse	L8_DKDL210000014-1a_HFL3FCCX2_L6	_2	01.raw_data/L8/L8_DKDL210000014-1a_HFL3FCCX2_L6_2.fq.gz	01.raw_data/L8/L8_2.fq.gz
+SampleID	Type	Old_name	New_name
+A1	Forward	01.raw_data/A1_1ILC_S33_L005_R1_001.fastq.gz	01.raw_data/A1.fastq.gz
+A2	Forward	01.raw_data/A2_9IL7_S41_L006_R1_001.fastq.gz	01.raw_data/A2.fastq.gz
+A3	Forward	01.raw_data/A3_17IRC_S49_L007_R1_001.fastq.gz	01.raw_data/A3.fastq.gz
+A4	Forward	01.raw_data/A4_25IR7_S57_L008_R1_001.fastq.gz	01.raw_data/A4.fastq.gz
+B1	Forward	01.raw_data/B1_2DLC_S34_L005_R1_001.fastq.gz	01.raw_data/B1.fastq.gz
+B2	Forward	01.raw_data/B2_10DL7_S42_L006_R1_001.fastq.gz	01.raw_data/B2.fastq.gz
+B3	Forward	01.raw_data/B3_18DRC_S50_L007_R1_001.fastq.gz	01.raw_data/B3.fastq.gz
+B4	Forward	01.raw_data/B4_26DR7_S58_L008_R1_001.fastq.gz	01.raw_data/B4.fastq.gz
+C1	Forward	01.raw_data/C1_3ILC_S35_L005_R1_001.fastq.gz	01.raw_data/C1.fastq.gz
+C2	Forward	01.raw_data/C2_11IL7_S43_L006_R1_001.fastq.gz	01.raw_data/C2.fastq.gz
+C3	Forward	01.raw_data/C3_19IRC_S51_L007_R1_001.fastq.gz	01.raw_data/C3.fastq.gz
+C4	Forward	01.raw_data/C4_27IR7_S59_L008_R1_001.fastq.gz	01.raw_data/C4.fastq.gz
+D1	Forward	01.raw_data/D1_4DLC_S36_L005_R1_001.fastq.gz	01.raw_data/D1.fastq.gz
+D2	Forward	01.raw_data/D2_12DL7_S44_L006_R1_001.fastq.gz	01.raw_data/D2.fastq.gz
+D3	Forward	01.raw_data/D3_20DRC_S52_L007_R1_001.fastq.gz	01.raw_data/D3.fastq.gz
+D4	Forward	01.raw_data/D4_28DR7_S60_L008_R1_001.fastq.gz	01.raw_data/D4.fastq.gz
+E1	Forward	01.raw_data/E1_5ILC_S37_L005_R1_001.fastq.gz	01.raw_data/E1.fastq.gz
+E2	Forward	01.raw_data/E2_13IL7_S45_L006_R1_001.fastq.gz	01.raw_data/E2.fastq.gz
+E3	Forward	01.raw_data/E3_21IRC_S53_L007_R1_001.fastq.gz	01.raw_data/E3.fastq.gz
+E4	Forward	01.raw_data/E4_29IR7_S61_L008_R1_001.fastq.gz	01.raw_data/E4.fastq.gz
+F1	Forward	01.raw_data/F1_6DLC_S38_L005_R1_001.fastq.gz	01.raw_data/F1.fastq.gz
+F2	Forward	01.raw_data/F2_14DL7_S46_L006_R1_001.fastq.gz	01.raw_data/F2.fastq.gz
+F3	Forward	01.raw_data/F3_22DRC_S54_L007_R1_001.fastq.gz	01.raw_data/F3.fastq.gz
+F4	Forward	01.raw_data/F4_30DR7_S62_L008_R1_001.fastq.gz	01.raw_data/F4.fastq.gz
+G1	Forward	01.raw_data/G1_7ILC_S39_L005_R1_001.fastq.gz	01.raw_data/G1.fastq.gz
+G2	Forward	01.raw_data/G2_15IL7_S47_L006_R1_001.fastq.gz	01.raw_data/G2.fastq.gz
+G3	Forward	01.raw_data/G3_23IRC_S55_L007_R1_001.fastq.gz	01.raw_data/G3.fastq.gz
+G4	Forward	01.raw_data/G4_31IR7_S63_L008_R1_001.fastq.gz	01.raw_data/G4.fastq.gz
+H1	Forward	01.raw_data/H1_8DLC_S40_L005_R1_001.fastq.gz	01.raw_data/H1.fastq.gz
+H2	Forward	01.raw_data/H2_16DL7_S48_L006_R1_001.fastq.gz	01.raw_data/H2.fastq.gz
+H3	Forward	01.raw_data/H3_24DRC_S56_L007_R1_001.fastq.gz	01.raw_data/H3.fastq.gz
+H4	Forward	01.raw_data/H4_32DR7_S64_L008_R1_001.fastq.gz	01.raw_data/H4.fastq.gz

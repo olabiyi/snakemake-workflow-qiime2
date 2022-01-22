@@ -1,0 +1,13 @@
+sample-id,absolute-filepath,direction
+40BHFBK1,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK1/40BHFBK1_R1.fastq.gz,forward
+40BHFBK1,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK1/40BHFBK1_R2.fastq.gz,reverse
+40BHFBK1_PF,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK1_PF/40BHFBK1_PF_R1.fastq.gz,forward
+40BHFBK1_PF,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK1_PF/40BHFBK1_PF_R2.fastq.gz,reverse
+40BHFBK2,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK2/40BHFBK2_R1.fastq.gz,forward
+40BHFBK2,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK2/40BHFBK2_R2.fastq.gz,reverse
+40BHFBK3,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK3/40BHFBK3_R1.fastq.gz,forward
+40BHFBK3,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK3/40BHFBK3_R2.fastq.gz,reverse
+40BHFBK3_PF,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK3_PF/40BHFBK3_PF_R1.fastq.gz,forward
+40BHFBK3_PF,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK3_PF/40BHFBK3_PF_R2.fastq.gz,reverse
+40BHFBK4,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK4/40BHFBK4_R1.fastq.gz,forward
+40BHFBK4,/home/jeffbrady/biyi/snakemake-workflow-qiime2/01.raw_data/40BHFBK4/40BHFBK4_R2.fastq.gz,reverse

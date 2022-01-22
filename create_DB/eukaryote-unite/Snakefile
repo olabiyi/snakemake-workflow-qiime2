@@ -6,21 +6,16 @@ from os import path,getcwd
 configfile: "config/config.yaml"
 
 
-RULES=["Download_silva_database", "Extract_primer_silva_reads", "Train_silva_classifier",
-       "Download_unite_database", "Unzip_unite_DB", "modify_and_rename_unite_files","Import_unite_sequences",
+RULES=["Download_unite_database", "Unzip_unite_DB", "modify_and_rename_unite_files","Import_unite_sequences",
        "Import_unite_taxonomy", "Import_unite_taxonomy", "Train_unite_classifier"]
 
 
 
 rule all:
     input:
-        "logs/Download_silva_database/",
         "logs/Download_unite_database/",
         "logs/modify_and_rename_unite_files/",
         "logs/Train_unite_classifier/",
-        "logs/Train_silva_classifier",
-        "databases/silva-138-99-nb-classifier.qza",
-        "databases/silva-138-99-nb-341-926-classifier.qza",
         "databases/unite-classifier.qza"
 
 
@@ -29,11 +24,9 @@ rule all:
 # # generated when submiting jobs to the cluster
 rule make_logs_directories:
     output:
-        directory("logs/Download_silva_database/"),
         directory("logs/Download_unite_database/"),
         directory("logs/modify_and_rename_unite_files/"),
-        directory("logs/Train_unite_classifier/"),
-        directory("logs/Train_silva_classifier")
+        directory("logs/Train_unite_classifier/")
     threads: 1
     shell:
         """
@@ -44,98 +37,6 @@ rule make_logs_directories:
          done
         """
 
-
-# -------------- Get SILVA database for QIIME2 ------------------#
-
-rule Download_silva_database:
-    input:
-        log_dirs=rules.make_logs_directories.output
-    output:
-        classifier="databases/silva-138-99-nb-classifier.qza",
-        sequences="databases/silva-138-99-seqs.qza",
-        taxonomy="databases/silva-138-99-tax.qza"
-    threads: 1
-    log: "logs/Download_silva_database/Download_silva_database.log"
-    params:
-        classifier=config["SILVA_CLASSIFIER"],
-        sequences=config["SILVA_SEQUENCES"],
-        taxonomy=config["SILVA_TAXONOMY"]
-    shell:
-        """
-
-        # Classifier
-        wget -O {output.classifier}  {params.classifier} > {log} 2>&1
-        
-        # Sequences
-        wget -O {output.sequences} {params.sequences} > {log} 2>&1
-
-        # Taxonomy
-        wget -O {output.taxonomy} {params.taxonomy} > {log} 2>&1
-
-        """
-
-# ----- A primer specific silva database ---------#
-
-rule Extract_primer_silva_reads:
-    input: rules.Download_silva_database.output.sequences # OR  rules.download_silva_database.output.classifier
-    output: "databases/ref-seqs-341-926.qza" 
-    threads: 1
-    log: "logs/Extract_primer_silva_reads/Extract_primer_silva_reads.log"
-    params:
-        conda_activate=config["QIIME2_ENV"],
-        forward_primer=config["parameters"]["extract_sequence"]["forward_primer"],
-        reverse_primer=config["parameters"]["extract_sequence"]["reverse_primer"],
-        trunc_len=config["parameters"]["extract_sequence"]["trunc_length"],
-        min_length=config["parameters"]["extract_sequence"]["min_length"],
-        max_length=config["parameters"]["extract_sequence"]["max_length"]
-    shell:
-        """
-        set +u
-
-        {params.conda_activate}
-
-        set -u
-        
-        qiime feature-classifier extract-reads \
-             --i-sequences {input} \
-             --p-f-primer {params.forward_primer} \
-             --p-r-primer {params.reverse_primer} \
-             --p-trunc-len {params.trunc_len} \
-             --p-min-length {params.min_length} \
-             --p-max-length {params.max_length} \
-             --o-reads {output}  > {log} 2>&1
-        """
-
-
-#   Train the classifier
-#  Will fail with the error message "Killed" if you are out
-# of memory. It is a good idea to provide this step with
-# a lot of memory say 50GB and above.
-rule Train_silva_classifier:
-    input: 
-        sequences=rules.Extract_primer_silva_reads.output,
-        taxonomy=rules.Download_silva_database.output.taxonomy
-    output: "databases/silva-138-99-nb-341-926-classifier.qza"
-    threads: 1
-    log: "logs/Train_silva_classifier/Train_silva_classifier.log"
-    params:
-        conda_activate=config["QIIME2_ENV"]
-    resources:
-        mem_mb=50024 # 50GB of memeory required
-    shell:
-        """
-        set +u
-
-        {params.conda_activate}
-
-        set -u
-        
-        qiime feature-classifier fit-classifier-naive-bayes \
-              --i-reference-reads {input.sequences} \
-              --i-reference-taxonomy {input.taxonomy} \
-              --o-classifier {output}  > {log} 2>&1
-             
-        """
 
 
 # --------------- Create Unite database for QIIME2 -----------------#
@@ -155,8 +56,8 @@ rule Download_unite_database:
 rule Unzip_unite_DB:
     input: rules.Download_unite_database.output
     output: 
-        sequences="databases/sh_qiime_release_04.02.2020/sh_refs_qiime_ver8_dynamic_04.02.2020.fasta",
-        taxonomy="databases/sh_qiime_release_04.02.2020/sh_taxonomy_qiime_ver8_dynamic_04.02.2020.txt"
+        sequences="databases/sh_qiime_release_s_all_10.05.2021/sh_refs_qiime_ver8_dynamic_s_all_10.05.2021.fasta",
+        taxonomy="databases/sh_qiime_release_s_all_10.05.2021/sh_taxonomy_qiime_ver8_dynamic_s_all_10.05.2021.txt"
     threads: 1
     #log: "logs/Unzip_unite_DB/Unzip_unite_DB.log"
     params:
