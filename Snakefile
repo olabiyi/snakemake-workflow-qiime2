@@ -842,7 +842,7 @@ rule Exclude_non_target_taxa:
         # by 0.005
         qiime feature-table summarize \
           --i-table {output.table_raw} \
-          --o-visualization {output.table_raw}
+          --o-visualization {output.table_viz}
         """
 
 # Removing rare taxa i.e. features with abundance less the 0.005%
