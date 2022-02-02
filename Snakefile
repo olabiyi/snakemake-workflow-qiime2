@@ -691,7 +691,7 @@ rule Assign_taxonomy:
 
          # Assign taxonomy
          qiime feature-classifier classify-sklearn \
-           --i-classifier {input.rep_seqs} \
+           --i-classifier {input.classifier} \
            --i-reads {input.rep_seqs} \
            --o-classification {output.raw} 
 
