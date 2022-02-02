@@ -927,20 +927,20 @@ rule Group_taxa_bar_plot:
 
         # Group feature table by group in metadata file
         qiime feature-table group \
-           --i-table  {input.table}  \
-           --p-axis sample \
-           --m-metadata-file {input.metadata} \ 
-           --m-metadata-column {params.category}
-           --p-mode {params.mode} \
-           --o-grouped-table {output.grouped_table}
+            --i-table  {input.table}  \
+            --p-axis sample \
+            --m-metadata-file {input.metadata} \
+            --m-metadata-column '{params.category}' \
+            --p-mode {params.mode} \
+            --o-grouped-table {output.grouped_table}
 
         # Grouped bar plot
         qiime taxa barplot \
           --i-table {output.grouped_table} \
           --i-taxonomy {input.taxonomy} \
           --m-metadata-file {input.metadata} \
-          --o-visualization  {output}
-       """
+          --o-visualization  {output.bar_plot}
+      """
 
 
 # -----------------------------------  Alpha and Beta diversity -------------------------------------#
