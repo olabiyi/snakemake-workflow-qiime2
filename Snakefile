@@ -1263,7 +1263,7 @@ if config['amplicon'] == "16S":
             ec="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_unstrat.tsv.gz",
             ko="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat.tsv.gz",
             pathway="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_unstrat.tsv.gz",
-            contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv.gz"
+            #contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv.gz"
         log: "logs/Function_annotation/Function_annotation.log"
         threads: 10
         params:
@@ -1284,8 +1284,7 @@ if config['amplicon'] == "16S":
                 -s {input.rep_seqs} \
                 -i {input.feature_table} \
                 -o picrust2_out_pipeline/ \
-                -p {params.threads} \
-                --stratified && \
+                -p {params.threads} && \
                 mv picrust2_out_pipeline/* {params.out_dir}/ && \
                 rmdir picrust2_out_pipeline/
             """
@@ -1296,14 +1295,14 @@ if config['amplicon'] == "16S":
             ec=rules.Function_annotation.output.ec,
             ko=rules.Function_annotation.output.ko,
             pathway=rules.Function_annotation.output.pathway,
-            contrib=rules.Function_annotation.output.contrib
+            #contrib=rules.Function_annotation.output.contrib
         output:
             ec="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_unstrat_descrip.tsv",
             ko="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_unstrat_descrip.tsv",
             pathway="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_unstrat_descrip.tsv",
-            ec_contrib="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_contrib.tsv",
-            ko_contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv",
-            pathway_contrib="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_contrib.tsv"
+            #ec_contrib="15.Function_annotation/picrust2_out_pipeline/EC_metagenome_out/pred_metagenome_contrib.tsv",
+            #ko_contrib="15.Function_annotation/picrust2_out_pipeline/KO_metagenome_out/pred_metagenome_contrib.tsv",
+            #pathway_contrib="15.Function_annotation/picrust2_out_pipeline/pathways_out/path_abun_contrib.tsv"
         log: "logs/Add_description/Add_description.log"
         threads: 10
         params:
@@ -1327,7 +1326,7 @@ if config['amplicon'] == "16S":
             add_descriptions.py -i {input.ko} -m KO -o {output.ko} 
  
             # Unizip the metagenome contribution files - these files describe the micribes contribution the function profiles
-            find {params.outdir} -type f -name "*contrib.tsv.gz" -exec gunzip {{}} \;
+            #find {params.outdir} -type f -name "*contrib.tsv.gz" -exec gunzip {{}} \;
             """
 
 else:
