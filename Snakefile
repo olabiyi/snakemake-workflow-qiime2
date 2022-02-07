@@ -918,7 +918,8 @@ rule Group_taxa_bar_plot:
     params:
         conda_activate=config["conda"]["qiime2"]["env"],
         category=config['parameters']['group_taxa_plot']['category'],
-        mode=config['parameters']['group_taxa_plot']['mode']
+        mode=config['parameters']['group_taxa_plot']['mode'],
+        metadata=config['parameters']['group_taxa_plot']['metadata']
     shell:
         """
         set +u
@@ -938,7 +939,7 @@ rule Group_taxa_bar_plot:
         qiime taxa barplot \
           --i-table {output.grouped_table} \
           --i-taxonomy {input.taxonomy} \
-          --m-metadata-file {input.metadata} \
+          --m-metadata-file {params.metadata} \
           --o-visualization  {output.bar_plot}
       """
 
@@ -976,7 +977,10 @@ rule Core_diversity_analysis:
            --i-table {input.table} \
            --i-phylogeny {input.tree} \
            --m-metadata-file {input.metadata} \
-           --output-dir {output}
+           --p-n-jobs-or-threads 'auto' \
+           --output-dir core_diversity/  && \
+           mv core_diversity/* {diversity_dir}/ && \
+           rm -rf core_diversity/
         """
 
 # Alpha rarefaction curves show taxon accumulation as a function of sequence depth
@@ -1052,7 +1056,9 @@ rule Beta_diversity_statistics:
         category=config['parameters']['group_taxa_plot']['category']
     shell:
         """
-
+        set +u
+        {params.conda_activate}
+        set -u
         
         for distance in {distance_matrices}; do
         
@@ -1112,7 +1118,7 @@ rule Rename_asv_table:
     threads: 1
     params:
         out_dir=lambda w, output: path.dirname(output[0]),
-        basename=lambda w, output: path.basename(output[0])
+        basename=lambda w, input: path.basename(input[0])
     shell:
         "cp {input} {params.out_dir}/  && "
         "mv {params.out_dir}/{params.basename} {output}"
