@@ -1,8 +1,15 @@
 sample_file: "config/sample.tsv"
 metadata: "00.mapping/metadata.tsv"
 mail: "obadbotanist@yahoo.com" # A mere label
-samples: ['40BHFBK1', '40BHFBK1_PF', '40BHFBK2', '40BHFBK3', '40BHFBK3_PF', '40BHFBK4'] # List your sample names here - see the README.md file for an easy way to create this list
-project_dir: "~/biyi/snakemake-workflow-qiime2"
+samples: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", 
+          "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9_1", "B9_2",
+          "B10_1", "B10_2", "C1", "C2", "C3", "C4", "C5", "C6", "C7", 
+          "C8", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", 
+          "D10", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9",
+          "E10", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", 
+          "F10", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"]
+ # List your sample names here - see the README.md file for an easy way to create this list
+project_dir: "/scratch/user/obayomi/projects/Zebrafish/16S_trimmed_unmerged"
 # what type of amplicon are we analyzing
 # options are
 # "16S", "18S" and "ITS"
@@ -18,7 +25,7 @@ category: "Treatment"
 # before running the workflow
 
 mode: "pair" # "pair", "single" or "merge"
-RENAME_FILES: true # should your input files be renamed if they don't follow the requirement of 01.raw_data/{SAMPLE}_R{1|2}.fastq.gz
+RENAME_FILES: false # should your input files be renamed if they don't follow the requirement of 01.raw_data/{SAMPLE}_R{1|2}.fastq.gz
 
 # What method should be used in merging reads
 # options are "pear" or "vsearch"
@@ -29,16 +36,16 @@ merge_method: "pear"
 denoise_method: "dada2"
 
 # path to your manifest file - see the example folder for examples
-MANIFEST: "01.raw_data/MANIFEST"
-project_name: "Biochar" # This has no use in the pipeline just help to keep records
+MANIFEST:  "01.raw_data/MANIFEST"
+project_name: "Zebrafish" # This has no use in the pipeline just help to keep records
 
 # # Add this line to everdy script to avoid device out of space error
-TEMP_DIR: "export TEMPDIR=/home/jeffbrady/biyi/snakemake-workflow-qiime2/tmp/ TMPDIR=/home/jeffbrady/biyi/snakemake-workflow-qiime2/tmp/"
+TEMP_DIR: "export TEMPDIR=/scratch/user/obayomi/projects/Zebrafish/tmp/ TMPDIR=/scratch/user/obayomi/projects/Zebrafish/tmp/"
 
 # set the path to the appropriate classifier for assigning taxonomy
 # Here i chose the classifier for silva for bacteria (16S) and protist (18S) analysis
 # For Fungi set to the path of a pre trained unite database classifier
-classifier: "/home/jeffbrady/biyi/snakemake-workflow-qiime2/create_DB/databases/silva-138-99-nb-classifier.qza"
+classifier:  "/scratch/user/obayomi/projects/qiime2/create_DB/databases/silva-138-99-nb-classifier.qza"
 
 # To figure out the total number of sequences ("Total freqency") 
 # to be used to determine the minuminum frequency for filtering out
@@ -46,24 +53,23 @@ classifier: "/home/jeffbrady/biyi/snakemake-workflow-qiime2/create_DB/databases/
 # To calculate, multiply the total number of sequences by 0.00005 (0.005%)
 # Assign the result of your calulation below as the minimum frequency 
 # for filtering out rare taxa
-# 4,510,765 * 0.00005 = 225.53825
-minimum_frequency: 226
+# 741,904 * 0.00005 = 37.0952
+minimum_frequency: 37
 
 # Change this and re-run core diversity step if needed. Determine this number by
 # examiming "08.Filter_feature_table/filtered_table.qzv". Either choose the
 # minimum sequence count or choose the minimum sequence count 
 # that will be enough to capture the diversity of your samples and still
 # not lose a lot of samples
-rarefaction_depth: 1000
+rarefaction_depth: 123
 
 
 # Full paths to the specified programs
 programs_path:
-    multiqc: "/home/obayomi/miniconda3/envs/bioinfo/bin/multiqc"
-    fastqc: "/home/obayomi/miniconda3/envs/bioinfo/bin/fastqc"
-    parallel: "/home/obayomi/miniconda3/envs/bioinfo/bin/parallel"
-    run_pear: "/home/jeffbrady/biyi/snakemake-workflow-qiime2/scripts/run_pear.pl"
-
+    multiqc: "/scratch/user/obayomi/.conda/envs/bioinfo/bin/multiqc"
+    fastqc: "/scratch/user/obayomi/.conda/envs/bioinfo/bin/fastqc"
+    parallel: "/scratch/user/obayomi/.conda/envs/bioinfo/bin/parallel"
+    run_pear:  "pear" #"/scratch/user/obayomi/projects/qiime2/run_pear.pl"
 
 # Set tool specific parameters
 parameters:
@@ -75,14 +81,14 @@ parameters:
             minimum_merge_length: 400
             minimum_merge_length: 600
     dada2:
-        mode: "paired" # "single" or "paired"
-        trunc_length_forward: 260 # this will be determined after visulaizing the quality plot where quality score is >= 20
-        trunc_length_reverse: 200
+        mode: "single" # "single" or "paired"
+        trunc_length_forward: 200 # 280 #220 # this will be determined after visulaizing the quality plot where quality score is >= 20
+        trunc_length_reverse: 140 #180
         trim_length_forward: 0
         trim_length_reverse: 0
         maximum_forward_error: 4
         maximum_reverse_error: 4
-        threads: 10
+        threads: 28
 
     # --p-trim-length n which truncates the sequences at position n
     # In general, the Deblur developers recommend setting this value
@@ -102,15 +108,28 @@ parameters:
         forward_primer: "GTGYCAGCMGCCGCGGTAA"
         reverse_primer: "GGACTACNVGGGTWTCTAAT"
         cores: 10
+    fastree:
+        threads: 28
+    assign_taxonomy:
+        threads: 28
+    picrust:
+        threads: 28
+    pear:
+        min_assembly: 150
+        max_assembly: 300
+        min_trim: 150
+        threads: 8
 
 conda:
-    qiime2: 
-        env: "source activate /home/obayomi/miniconda3/envs/qiime2-2020.6"
-        perl5lib: "export PERL5LIB=/home/obayomi/miniconda3/envs/qiime2-2020.6/lib/site_perl/5.26.2/x86_64-linux-thread-multi"
+    qiime2:
+        env: "module purge; module load Anaconda3/2020.07; source activate /sw/hprc/sw/Anaconda3/2020.07/envs/qiime2-2021.2"
+        perl5lib: "export PERL5LIB=/sw/hprc/sw/Anaconda3/2020.07/envs/qiime2-2021.2/lib/site_perl/5.26.2/x86_64-linux-thread-multi"
     picrust2:
-        env: "source activate /home/obayomi/miniconda3/envs/picrust2"
-        perl5lib: "export PERL5LIB=/home/obayomi/miniconda3/envs/picrust2/lib/site_perl/5.26.2/x86_64-linux-thread-multi"
-    bioinfo: 
-        env: "source activate /home/obayomi/miniconda3/envs/bioinfo"
-        perl5lib: "export PERL5LIB=/home/obayomi/miniconda3/envs/bioinfo/lib/5.26.2"
+        env: "module purge; module load Anaconda3/2020.07; source activate /scratch/user/obayomi/.conda/envs/picrust2"
+        perl5lib: "export PERL5LIB=/scratch/user/obayomi/.conda/envs/picrust2/lib/site_perl/5.26.2/x86_64-linux-thread-multi"
+    bioinfo:
+        env: "module purge; module load Anaconda3/2020.07; source activate /scratch/user/obayomi/.conda/envs/bioinfo"
+        perl5lib: "export PERL5LIB=/scratch/user/obayomi/.conda/envs/bioinfo/lib/5.26.2"
+    pear:
+        env: "module purge; module load GCCcore/9.3.0 PEAR/0.9.11"
 

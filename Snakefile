@@ -55,6 +55,7 @@ rule all:
 #        expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz",
 #                "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples']), -> PAIRED-END # uncomment if you want to rename your file
         READS,
+#        expand("02.merge_reads/{sample}/{sample}.fastq.gz", sample=config['samples']),
         "02.QC/pre_trim/multiqc_report.html",
         "03.import/reads.qza",
         "04.QC/raw_reads_qual_viz.qzv",
@@ -303,36 +304,92 @@ elif mode == "merge":
 
     if merge_method == "pear":
 
+#        # Merge paired-end reads using pear - modifify the -m -t flags of pear before running the workflow    
+#        rule Merge_reads:
+#            input:
+#                expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz", 
+#                       "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples'])
+#            output:
+#                expand("02.merge_reads/{sample}/{sample}.fastq.gz", sample=config['samples'])
+#            log: "logs/Merge_reads/Merge_reads.log"
+#            threads: 5
+#            params:
+#                out_dir=lambda w, output: path.dirname(output[0]),
+#                in_dir=lambda w, input: path.dirname(input[0]).dirname,
+#                program=config['programs_path']['run_pear'],
+#                conda_activate=config['conda']['bioinfo']['env'],
+#                PERL5LIB=config['conda']['bioinfo']['perl5lib']
+#
+#            shell:
+#                """
+#                set +u
+#                {params.conda_activate}
+#                {params.PERL5LIB}
+#                set -u
+#                
+#
+#                FILES=$(find)
+#                # Merge reads then delete unnecessary files
+#                 {params.program} -o {params.out_dir}/  {params.in_dir}/*.fastq.gz && \
+#                 rm -rf {params.out_dir}/*.unassembled* {params.out_dir}/*discarded*
+#         
+#               # gzip to save memory
+#         
+#                 gzip {params.out_dir}/*.fastq
+#
+#                """
         # Merge paired-end reads using pear - modifify the -m -t flags of pear before running the workflow    
         rule Merge_reads:
             input:
-                expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz", 
-                       "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples'])
-            output:
-                expand("02.merge_reads/{sample}/{sample}.fastq.gz", sample=config['samples'])
-            log: "logs/Merge_reads/Merge_reads.log"
+                forward="01.raw_data/{sample}/{sample}_R1.fastq.gz",
+                rev="01.raw_data/{sample}/{sample}_R2.fastq.gz"
+            output: "02.merge_reads/{sample}/{sample}.fastq.gz"
+            log: "logs/Merge_reads/{sample}/{sample}.log"
             threads: 5
             params:
                 out_dir=lambda w, output: path.dirname(output[0]),
-                in_dir=lambda w, input: path.dirname(input[0]),
-                program=config['programs_path']['run_pear']
+                program=config['programs_path']['run_pear'],
+                conda_activate=config['conda']['pear']['env'],
+                min=config['parameters']['pear']['min_assembly'],
+                max=config['parameters']['pear']['max_assembly'],
+                min_trim=config['parameters']['pear']['min_trim'],
+                threads=config['parameters']['pear']['threads']
+
             shell:
                 """
-                # Merge reads then delete unnecessary files
-                 {params.program} -o {params.out_dir}/  {params.in_dir}/*.fastq.gz && \
-                 rm -rf {params.out_dir}/*.unassembled* {params.out_dir}/*discarded*
-         
-               # gzip to save memory
-         
-                 gzip {params.out_dir}/*.fastq
+                {params.conda_activate}
+               
+                 [ -d {params.out_dir} ] ||  mkdir -p {params.out_dir}
+                 # Merge reads then delete unnecessary files
+                 {params.program} \
+                    -f {input.forward} \
+                    -r {input.rev} \
+                    -j {params.threads} \
+                    -o {params.out_dir}/{wildcards.sample} \
+                    -m {params.max} \
+                    -n {params.min} \
+                    -t {params.min_trim} > {log} 2>&1
 
-                """
+
+                 rm -rf \
+                   {params.out_dir}/{wildcards.sample}.discarded.fastq \
+                   {params.out_dir}/{wildcards.sample}.unassembled.forward.fastq \
+                   {params.out_dir}/{wildcards.sample}.unassembled.reverse.fastq 
+
+                 mv {params.out_dir}/{wildcards.sample}.assembled.fastq {params.out_dir}/{wildcards.sample}.fastq
+         
+                 # gzip to save memory
+         
+                 gzip {params.out_dir}/{wildcards.sample}.fastq
+
+               """
+
 
 
         # Import pe-joined reads to qiime
         rule Import_sequences:
             input: 
-                rules.Merge_reads.output,
+                expand("02.merge_reads/{sample}/{sample}.fastq.gz", sample=config['samples']),
                 manifest_file=config["MANIFEST"]
             output: "03.import/reads.qza"
             log: "logs/Import_sequences/Import_sequences.log"
@@ -353,20 +410,42 @@ elif mode == "merge":
                      --input-format SingleEndFastqManifestPhred33
                 """
 
+        rule Trim_primers:
+            input: rules.Import_sequences.output
+            output: "04.Trim_primers/trimmed_reads.qza"
+            log: "logs/Trim_primers/Trim_primers.log"
+            threads: 10
+            params:
+                conda_activate=config["conda"]["qiime2"]["env"],
+                forward_primer=config['parameters']['cutadapt']['forward_primer'],
+                cores=config['parameters']['cutadapt']['cores'],
+            shell:
+                """
+                set +u
+                {params.conda_activate}
+                set -u
+
+                qiime cutadapt trim-single \
+                     --i-demultiplexed-sequences {input} \
+                     --p-cores {params.cores} \
+                     --p-front {params.forward_primer} \
+                     --o-trimmed-sequences {output} \
+                     --verbose
+                """
 
     elif merge_method == "vsearch":
 
         rule Import_sequences:
             input:
-                expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz", 
-                       "01.raw_data/{sample}/{sample}_R2.fastq.gz"],sample=config['samples']),
-                manifest_file=config["MANIFEST"]
+               expand(["01.raw_data/{sample}/{sample}_R1.fastq.gz",
+                      "01.raw_data/{sample}/{sample}_R2.fastq.gz"], sample=config['samples']),
+               manifest_file=config["MANIFEST"]
             output: "03.import/reads.qza"
             log: "logs/Import_sequences/Import_sequences.log"
             threads: 5
             params:
                 conda_activate=config["conda"]["qiime2"]["env"],
-                seq_dir=lambda w, input: path.dirname(input[0])
+                seq_dir=lambda w, input: path.dirname(input[0]).split('/')[0]
             shell:
                 """
                 set +u
@@ -374,10 +453,12 @@ elif mode == "merge":
                 set -u
 
                 qiime tools import \
-                     --type 'SampleData['PairedEndSequencesWithQuality']' \
+                     --type 'SampleData[PairedEndSequencesWithQuality]' \
                      --input-path {input.manifest_file} \
-                     --output-path {output} 
+                     --output-path {output} \
+                     --input-format PairedEndFastqManifestPhred33
                 """
+
 
         # Merge forwards and reverse reads using vsearch
         rule Merge_reads:
@@ -401,6 +482,30 @@ elif mode == "merge":
                      --o-joined-sequences {output}
                 """
  
+        rule Trim_primers:
+            input: rules.Merge_reads.output
+            output: "04.Trim_primers/trimmed_reads.qza"
+            log: "logs/Trim_primers/Trim_primers.log"
+            threads: 10
+            params:
+                conda_activate=config["conda"]["qiime2"]["env"],
+                forward_primer=config['parameters']['cutadapt']['forward_primer'],
+                cores=config['parameters']['cutadapt']['cores'],
+            shell:
+                """
+                set +u
+                {params.conda_activate}
+                set -u
+            
+                qiime cutadapt trim-single \
+                     --i-demultiplexed-sequences {input} \
+                     --p-cores {params.cores} \
+                     --p-front {params.forward_primer} \
+                     --o-trimmed-sequences {output} \
+                     --verbose
+                """
+
+
 
 # Demultiplex and View reads quality
 # Analyze quality scores of 10000 random samples
@@ -682,7 +787,8 @@ rule Assign_taxonomy:
     log: "logs/Assign_taxonomy/Assign_taxonomy.log"
     threads: 30
     params:
-        conda_activate=config["conda"]["qiime2"]["env"]
+        conda_activate=config["conda"]["qiime2"]["env"],
+        threads=config["parameters"]["assign_taxonomy"]["threads"]
     shell:
         """
         set +u
@@ -693,7 +799,8 @@ rule Assign_taxonomy:
          qiime feature-classifier classify-sklearn \
            --i-classifier {input.classifier} \
            --i-reads {input.rep_seqs} \
-           --o-classification {output.raw} 
+           --o-classification {output.raw} \
+           --p-n-jobs {params.threads}
 
          # Tabulate taxonomy
 
@@ -716,7 +823,8 @@ rule Build_phylogenetic_tree:
     log: "logs/Build_phylogenetic_tree/Build_phylogenetic_tree.log"
     threads: 30
     params:
-        conda_activate=config["conda"]["qiime2"]["env"]
+        conda_activate=config["conda"]["qiime2"]["env"],
+        threads=config["parameters"]["fastree"]["threads"]
     shell:
         """
         set +u
@@ -735,7 +843,8 @@ rule Build_phylogenetic_tree:
            --o-alignment {output.alignment} \
            --o-masked-alignment {output.masked_alignment} \
            --o-tree {output.unrooted_tree} \
-           --o-rooted-tree {output.rooted_tree}
+           --o-rooted-tree {output.rooted_tree} \
+           --p-n-threads {params.threads}
         """
 
 
@@ -750,7 +859,7 @@ rule Build_phylogenetic_tree:
 # Bryophyta,Tracheophyta
 
 if config['amplicon'] == "16S":
-    taxa2filter = "Unassigned,Chloroplast,Mitochondria,Archaea,Eukaryota"
+    taxa2filter = "Unassigned,Chloroplast,Mitochondria,Eukaryota"
 
 elif config['amplicon'] == "18S":
     taxa2filter = "Bacteria,Fungi,Chytridiomycota,Basidiomycota,Metazoa,Rotifera,"
@@ -1269,7 +1378,7 @@ if config['amplicon'] == "16S":
         params:
             conda_activate=config['conda']['picrust2']["env"],
             out_dir=lambda w, output: output.ec.split('/')[0] + "/" + output.ec.split('/')[1],
-            threads=10
+            threads=config['parameters']['picrust']['threads']
         shell:
             """
             set +u

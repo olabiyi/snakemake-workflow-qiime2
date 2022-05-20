@@ -1,8 +1,30 @@
 __default__:
-    queue: bioinfo.q
-    shell: /bin/bash
-    threads: 20
-    time: 1:00:00
-    node: 1
+    system: 'slurm'
+    account: "132773335440"
+    time: "12:00:00" # in minutes
+    mem: "10g" # in GB
+    threads: "10"
+    queue: "xlong" # gpu
+    nodes: "1"
+    
 
+Trim_primers:
+    mem: "60g" # in GB
+    threads: "28"
+ 
+Denoise_reads:
+    mem: "60g" # in GB
+    threads: "28" 
 
+Build_phylogenetic_tree:
+    mem: "60g" # in GB
+    threads: "28"   
+ 
+Assign_taxonomy:
+    mem: "210g" # in GB
+    threads: "28"    
+    
+Function_annotation:
+    mem: "60g" # in GB
+    threads: "28"
+    time: "17:00:00" 
