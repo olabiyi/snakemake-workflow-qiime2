@@ -1,4 +1,4 @@
-.PHONY: import denoise assign_taxonomy plot complete clean
+.PHONY: import denoise assign_taxonomy plot complete clean upload download
 
 complete:
 	@echo "Running the complete pipeline. Quality reports, Corediversity analysis, statistics and functional analysis"
@@ -28,7 +28,7 @@ assign_taxonomy:
 
 plot:
 	@echo "Filtering out rare ASV and generating taxonomy plots"
-	snakemake -pr --cores 10 --keep-going  "08.Filter_feature_table/filtered_table.qzv" "09.Taxa_bar_plots/group-bar-plot.qzv" "09.Taxa_bar_plots/samples-bar-plots.qzv"
+	snakemake -pr --cores 10 --keep-going --rerun-incomplete  "08.Filter_feature_table/filtered_table.qzv" "09.Taxa_bar_plots/group-bar-plot.qzv" "09.Taxa_bar_plots/samples-bar-plots.qzv"
 
 upload:
 	@echo "Copying the denoising folder to HPRC for taxonomy assignment"
@@ -37,7 +37,3 @@ upload:
 download:
 	@echo "Downloading the assign taxonomy folder from HPRC"
 	scp -r obayomi@grace.tamu.edu:/scratch/user/obayomi/projects/amplicon_sequencing/Guay/06.Assign_taxonomy/ .
-
-clean:
-	rm  slurm-*  *.{e,o}.*
-
