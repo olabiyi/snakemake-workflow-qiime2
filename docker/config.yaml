@@ -1,0 +1,103 @@
+sample_file: "config/sample.tsv"
+metadata: "00.mapping/metadata.tsv"
+mail: "obadbotanist@yahoo.com" # A mere label
+samples: ["S44733-0001", "S44733-0002", "S44733-0003", "S44733-0004", "S44733-0005"]
+ 
+ # List your sample names here - see the README.md file for an easy way to create this list
+project_dir: "/mnt/efs/scratch/gokdx/Pivot/contamination_hunting/SEQ44733/16s_analysis"
+# what type of amplicon are we analyzing
+# options are
+# "16S", "18S" and "ITS"
+amplicon: "16S" # "ITS" 
+# A coloumn in metada for grouping bar plot and for statistics
+category: "Strain"
+# Three possible mode
+# pair - paired-end reads without joining
+# single - single end reads, joining of unnecessary
+# merge - merge paired end reads
+# if you will select to join the reads 
+# # make sure to modify the -m -t flags of pear in the run_pear.pl script 
+# before running the workflow
+
+mode: "pair" # "pair", "single" or "merge"
+RENAME_FILES: false # should your input files be renamed if they don't follow the requirement of 01.raw_data/{SAMPLE}_R{1|2}.fastq.gz
+
+# What method should be used in merging reads
+# options are "pear" or "vsearch"
+# for merging with pear or vsearch, repectively
+merge_method: "pear"
+
+# ASV or zoTUs denoising and clustering method. Can be "dada2" or "deblur"
+denoise_method: "dada2"
+
+# path to your manifest file - see the example folder for examples
+MANIFEST: "01.raw_data/MANIFEST"
+project_name: "Contamination_hunt_round2" # This has no use in the pipeline just help to keep records
+
+# # Add this line to everdy script to avoid device out of space error
+TEMP_DIR: "export TEMPDIR=/mnt/efs/scratch/gokdx/Pivot/contamination_hunting/SEQ44733/16s_analysis/tmp/ TMPDIR=/mnt/efs/scratch/gokdx/Pivot/contamination_hunting/SEQ44733/16s_analysis/tmp/"
+
+# set the path to the appropriate classifier for assigning taxonomy
+# Here i chose the classifier for silva for bacteria (16S) and protist (18S) analysis
+# For Fungi set to the path of a pre trained unite database classifier
+classifier: "silva-138-99-nb-classifier.qza"
+
+# To figure out the total number of sequences ("Total freqency") 
+# to be used to determine the minuminum frequency for filtering out
+# rare taxa, examine "08.Filter_feature_table/taxa_filtered_table.qzv".
+# To calculate, multiply the total number of sequences by 0.00001 (0.001%)
+# Assign the result of your calulation below as the minimum frequency 
+# for filtering out rare taxa
+# 	106,203 * 0.00001 = 1.06203
+minimum_frequency: 1
+
+# Change this and re-run core diversity step if needed. Determine this number by
+# examiming "08.Filter_feature_table/filtered_table.qzv". Either choose the
+# minimum sequence count or choose the minimum sequence count 
+# that will be enough to capture the diversity of your samples and still
+# not lose a lot of samples
+rarefaction_depth: 3362
+
+# Set tool specific parameters
+parameters:
+    vsearch:
+        join_pairs:
+            truncqual: 20
+            minimum_length: 400
+            maximum_Ns: 20
+            minimum_merge_length: 400
+            minimum_merge_length: 600
+    dada2:
+        mode: "single" # "single" or "paired"
+        trunc_length_forward: 120 #260 # this will be determined after visulaizing the quality plot where quality score is >= 20
+        trunc_length_reverse: 110 #180
+        trim_length_forward: 0
+        trim_length_reverse: 0
+        maximum_forward_error: 4
+        maximum_reverse_error: 4
+        threads: 40
+
+    # --p-trim-length n which truncates the sequences at position n
+    # In general, the Deblur developers recommend setting this value
+    # to a length where the median quality score begins to drop too low 
+    deblur:
+        trunc_length: 40
+    # Parameters to argument of qiime feature-table group
+    # when grouping the feature table for making grouped taxa barplots
+    group_taxa_plot:
+        category: "Strain" # --m-metadata-column argument
+        mode: "sum" # --p-mode argument
+        metadata: "00.mapping/treatment-metadata.tsv" # a 2-column or more metadata for grouping bar plots ['sample-id', 'treatment']
+    beta_diversity_significance:
+         categories: "Strain" 
+   # Adators and primer trimming using cutadapt
+    cutadapt:
+        forward_primer: "GTGCCAGCMGCCGCGGTAA"
+        reverse_primer: "GGACTACHVGGGTWTCTAAT"
+        cores: 5
+    fastree:
+        threads: 20
+    assign_taxonomy:
+        threads: 40
+    picrust:
+        threads: 20
